@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="dialog" width="100%">
+  <v-dialog v-model="dialog" width="100%" fullscreen>
     <template v-slot:activator="{ on, attrs }">
       <v-row justify="center" align="center">
         <v-col cols="12" sm="12">      
@@ -64,12 +64,6 @@ export default {
        return
      }
   },
-  mounted () {
-    if (window) {
-      this.height = window.screen.height * 0.7
-      this.width = window.screen.width
-    }
-  },
   data () {
     return {
       dialog: false,
@@ -100,6 +94,9 @@ export default {
     dialog (v) {
       if (!v) {
         this.link = false
+      } else {
+        this.height = window.innerHeight - 82
+        this.width = window.screen.width
       }
     }
   }

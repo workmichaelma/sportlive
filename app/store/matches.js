@@ -16,7 +16,6 @@ export const getters = {
 export const actions = {
   async fetchMatches({ getters, rootGetters, commit }) {
     try {
-      console.log('yo')
       await axios.get('http://api:3000/').then(({ data }) => {
         commit('saveMatches', data)
       }).catch(err => {
