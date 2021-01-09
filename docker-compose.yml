@@ -30,6 +30,19 @@ services:
       - sportlive-networks
     environment:
       - TZ=Asia/Hong_Kong
+    depends_on:
+      - redis
+  redis:
+    image: redis:4.0-alpine
+    volumes:
+      - ./redis/redis.conf:/etc/redis/redis.conf
+    networks:
+      - sportlive-networks
+    ports:
+      - '6379'
+    command: redis-server /etc/redis/redis.conf
+    container_name: redis
+    hostname: redis
 
 networks:
   sportlive-networks:

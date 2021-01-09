@@ -6,10 +6,13 @@ const take = require('lodash/take')
 const trim = require('lodash/trim')
 const get = require('lodash/get')
 const map = require('lodash/map')
+const isNull = require('lodash/isNull')
 const cheerio = require('cheerio')
 const moment = require('moment')
 const axios = require('axios')
 const axiosRetry = require('axios-retry')
+
+const redisCache = require('./redis')
 
 axiosRetry(axios, { reties: 10 })
 
@@ -32,48 +35,61 @@ const featuredLeague = [
 
 app.get('/', async (req, res) => {
   try {
-    const source = await axios.get('https://www.b8b8.tv/class/soccer/').then(({ data }) => {
-      const $ = cheerio.load(data)
-      const matchRows = $('#rightbox > #righteventbox ul')
 
-      const allMatches = flatten(map(take(matchRows, 2), (matchRow, i) => {
-        const lis = $(matchRow).find('li')
-        return map(lis, _li => {
-          const li = $(_li)
-          const span = li.find('span')
-          
-          const _time = get(span, '[0]')
-          const league = get(span, '[2]')
-          const __link = get(span, '[3]')
-          const _link = __link ? $(__link).find('a').attr('href') : ''
-          const link = trim(trim(_link, '/play/'), '.htm') || ''
-          const title = __link ? $(__link).find('a').text() : ''
-
-          const date = get(link.split('/'), '[0]', '')
-          const time = _time ? $(_time).text() : ''
-
-          const start = moment(`${date} ${time}`, 'YYYYMMDD HH:mm')
-          if (start.isValid()) {
-            const before2Hours = moment().subtract(2, 'hours')
-            return {
-              title,
-              start: start.format('YYYY/MM/DD HH:mm'),
-              ended: before2Hours > start,
-              league: league ? $(league).find('a').text() : '',
-              id: `https://live.sportlive.cc/live/${get(link.split('/'), '[1]', '')}`
-            }
-          }
-        })
-      }))
-
-      return {
-        matches: allMatches,
-        featuredMatches: filter(allMatches, m => {
-          return featuredLeague.indexOf(m.league) > -1
-        })
-      }
+    const cacheCopy = await new Promise(resolve => {
+      redisCache.get('matches', function (err, result) {
+        resolve(result)
+      })
     })
-    res.json(source)
+
+    if (isNull(cacheCopy)) {
+      const result = await axios.get('https://www.b8b8.tv/class/soccer/').then(({ data }) => {
+        const $ = cheerio.load(data)
+        const matchRows = $('#rightbox > #righteventbox ul')
+
+        const allMatches = flatten(map(take(matchRows, 2), (matchRow, i) => {
+          const lis = $(matchRow).find('li')
+          return map(lis, _li => {
+            const li = $(_li)
+            const span = li.find('span')
+            
+            const _time = get(span, '[0]')
+            const league = get(span, '[2]')
+            const __link = get(span, '[3]')
+            const _link = __link ? $(__link).find('a').attr('href') : ''
+            const link = trim(trim(_link, '/play/'), '.htm') || ''
+            const title = __link ? $(__link).find('a').text() : ''
+
+            const date = get(link.split('/'), '[0]', '')
+            const time = _time ? $(_time).text() : ''
+
+            const start = moment(`${date} ${time}`, 'YYYYMMDD HH:mm')
+            if (start.isValid()) {
+              const before2Hours = moment().subtract(2, 'hours')
+              return {
+                title,
+                start: start.format('YYYY/MM/DD HH:mm'),
+                ended: before2Hours > start,
+                league: league ? $(league).find('a').text() : '',
+                url: `https://live.sportlive.cc/live/${get(link.split('/'), '[1]', '')}`
+              }
+            }
+          })
+        }))
+
+        return {
+          matches: allMatches,
+          featuredMatches: filter(allMatches, m => {
+            return featuredLeague.indexOf(m.league) > -1
+          })
+        }
+      })
+      redisCache.set('matches', result, { ttl: 3600 })
+
+      res.json(result)
+    } else {
+      res.json(cacheCopy)
+    }
   } catch (err) {
     console.log(err)
     res.json({})

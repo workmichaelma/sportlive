@@ -7,8 +7,7 @@ export default {
     host: '0.0.0.0'
   },
   head: {
-    titleTemplate: '%s - app',
-    title: 'app',
+    title: '睇波',
     meta: [
       { charset: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
@@ -43,9 +42,6 @@ export default {
   // Vuetify module configuration (https://go.nuxtjs.dev/config-vuetify)
   vuetify: {
     customVariables: ['~/assets/variables.scss'],
-    font: {
-      size: 24
-    },
     theme: {
       dark: true,
       themes: {

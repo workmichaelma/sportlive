@@ -13,7 +13,7 @@
                 v-for="(match, key) in matchList"
                 :key="`match_${match.title}_${key}`"
                 v-bind="attrs"
-                v-on:click="link = match.id"
+                v-on:click="link = match.url"
                 v-on="on"
               >
                 <v-list-item three-line>
