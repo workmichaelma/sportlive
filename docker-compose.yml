@@ -1,0 +1,46 @@
+version: '3'
+
+services:
+  # app:
+  #   build:
+  #     context: ./app
+  #     dockerfile: Dockerfile
+  #   volumes:
+  #     - ./app:/usr/src/app/corner/app
+  #   ports:
+  #     - '80:3000'
+  #   restart: always
+  #   depends_on:
+  #     - graphql
+  #   networks:
+  #     - corner-networks
+  #   environment:
+  #     - TZ=Asia/Hong_Kong
+  # mongo:
+  #   container_name: corner_mongo
+  #   image: mongo
+  #   ports:
+  #     - '27017:27017'
+  #   volumes:
+  #     - ./mongo:/usr/src/app/corner/mongo
+  #   networks:
+  #     - corner-networks
+  #   environment:
+  #     - TZ=Asia/Hong_Kong
+  api:
+    restart: always
+    build: ./api
+    command: sh -c "npm install && npm run start"
+    working_dir: /api
+    ports: 
+      - '1001:3000'
+    volumes:
+      - ./api:/api
+    networks:
+      - sportlive-networks
+    environment:
+      - TZ=Asia/Hong_Kong
+
+networks:
+  sportlive-networks:
+    driver: bridge
