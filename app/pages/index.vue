@@ -44,7 +44,7 @@
       </v-card-actions>
 
       <v-card-text v-if="link"> 
-        <iframe width="100%" :height="height" :src="link" />
+        <iframe width="100%" :height="height" :src="link" allowFullScreen="true" />
       </v-card-text>
 
     </v-card>
