@@ -17,6 +17,7 @@ const redisCache = require('./redis')
 axiosRetry(axios, { reties: 10 })
 
 const featuredLeague = [
+  '英超',
   '西甲',
   '意甲',
   '法甲',
